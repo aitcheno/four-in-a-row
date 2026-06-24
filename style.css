@@ -49,6 +49,12 @@ h1 span {
   color: #3a3a3a;
 }
 
+/* added a small pop out hint below the board */
+.hint {
+  font-size: 0.85rem;
+  color: #888;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(7, 72px);
@@ -69,7 +75,6 @@ h1 span {
   transition: background-color 0.15s ease;
 }
 
-/* column hover highlight added this step */
 .cell.col-hover {
   background-color: #e0dbd4;
 }
@@ -89,7 +94,6 @@ h1 span {
   background-color: #f4e4a7;
 }
 
-/* opponent coin glow so players know they can pop it */
 .coin.opponent-hover {
   box-shadow: 0 0 0 3px #3a3a3a44, 0 0 16px 4px #3a3a3a33;
   cursor: crosshair;

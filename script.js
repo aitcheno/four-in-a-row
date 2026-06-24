@@ -33,8 +33,12 @@ function renderBoard() {
 
       cell.addEventListener('click', () => handleDrop(c));
 
-      // added hover: highlight column and glow opponent coins
-      // mouseenter and mouseleave fire once per cell, not per pixel
+      // right click triggers pop out instead of browser context menu
+      cell.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        handlePopOut(r, c);
+      });
+
       cell.addEventListener('mouseenter', () => handleMouseEnter(r, c));
       cell.addEventListener('mouseleave', () => handleMouseLeave());
 
@@ -58,6 +62,23 @@ function handleDrop(col) {
   renderBoard();
 }
 
+function handlePopOut(row, col) {
+  const opponent = currentPlayer === 'red' ? 'yellow' : 'red';
+
+  // only allow popping out the opponent's coins
+  if (board[row][col] !== opponent) return;
+
+  // gravity: shift every coin above the removed one down by one row
+  // start from the popped row and work upwards
+  for (let r = row; r > 0; r--) {
+    board[r][col] = board[r - 1][col];
+  }
+  board[0][col] = null;
+
+  switchPlayer();
+  renderBoard();
+}
+
 function handleMouseEnter(row, col) {
   const opponent = currentPlayer === 'red' ? 'yellow' : 'red';
   const cells = boardEl.querySelectorAll('.cell');
@@ -65,11 +86,7 @@ function handleMouseEnter(row, col) {
   cells.forEach(cell => {
     const c = parseInt(cell.dataset.col);
     const r = parseInt(cell.dataset.row);
-
-    // highlight every cell in the same column
     if (c === col) cell.classList.add('col-hover');
-
-    // glow opponent coins specifically so players know they can pop them
     if (c === col && board[r][c] === opponent) {
       const coin = cell.querySelector('.coin');
       if (coin) coin.classList.add('opponent-hover');
