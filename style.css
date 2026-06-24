@@ -49,7 +49,6 @@ h1 span {
   color: #3a3a3a;
 }
 
-/* added a small pop out hint below the board */
 .hint {
   font-size: 0.85rem;
   color: #888;
@@ -97,4 +96,39 @@ h1 span {
 .coin.opponent-hover {
   box-shadow: 0 0 0 3px #3a3a3a44, 0 0 16px 4px #3a3a3a33;
   cursor: crosshair;
+}
+
+/* winner banner added in final step */
+.winner-banner {
+  background-color: #3a3a3a;
+  color: #f5f0eb;
+  padding: 20px 36px;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.winner-banner.hidden {
+  display: none;
+}
+
+#winner-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+#restart-btn {
+  background-color: #f5f0eb;
+  color: #3a3a3a;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#restart-btn:hover {
+  background-color: #e0dbd4;
 }
