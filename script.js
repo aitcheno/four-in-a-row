@@ -9,7 +9,6 @@ const turnCoinEl = document.getElementById('turn-coin');
 const turnTextEl = document.getElementById('turn-text');
 
 function initBoard() {
-  // 2d array to track coin positions, null means empty
   board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
   currentPlayer = 'red';
   updateTurnIndicator();
@@ -26,15 +25,18 @@ function renderBoard() {
       cell.dataset.row = r;
       cell.dataset.col = c;
 
-      // render a coin inside the cell if one exists at this position
       if (board[r][c]) {
         const coin = document.createElement('div');
         coin.classList.add('coin', board[r][c]);
         cell.appendChild(coin);
       }
 
-      // clicking any cell in a column drops into that column
       cell.addEventListener('click', () => handleDrop(c));
+
+      // added hover: highlight column and glow opponent coins
+      // mouseenter and mouseleave fire once per cell, not per pixel
+      cell.addEventListener('mouseenter', () => handleMouseEnter(r, c));
+      cell.addEventListener('mouseleave', () => handleMouseLeave());
 
       boardEl.appendChild(cell);
     }
@@ -42,7 +44,6 @@ function renderBoard() {
 }
 
 function handleDrop(col) {
-  // find the lowest empty row by scanning from the bottom up
   let targetRow = -1;
   for (let r = ROWS - 1; r >= 0; r--) {
     if (!board[r][col]) {
@@ -50,13 +51,38 @@ function handleDrop(col) {
       break;
     }
   }
-
-  // if no empty row found, column is full
   if (targetRow === -1) return;
 
   board[targetRow][col] = currentPlayer;
   switchPlayer();
   renderBoard();
+}
+
+function handleMouseEnter(row, col) {
+  const opponent = currentPlayer === 'red' ? 'yellow' : 'red';
+  const cells = boardEl.querySelectorAll('.cell');
+
+  cells.forEach(cell => {
+    const c = parseInt(cell.dataset.col);
+    const r = parseInt(cell.dataset.row);
+
+    // highlight every cell in the same column
+    if (c === col) cell.classList.add('col-hover');
+
+    // glow opponent coins specifically so players know they can pop them
+    if (c === col && board[r][c] === opponent) {
+      const coin = cell.querySelector('.coin');
+      if (coin) coin.classList.add('opponent-hover');
+    }
+  });
+}
+
+function handleMouseLeave() {
+  boardEl.querySelectorAll('.cell').forEach(cell => {
+    cell.classList.remove('col-hover');
+    const coin = cell.querySelector('.coin');
+    if (coin) coin.classList.remove('opponent-hover');
+  });
 }
 
 function switchPlayer() {

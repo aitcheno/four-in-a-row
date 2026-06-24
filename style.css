@@ -26,7 +26,6 @@ h1 span {
   color: #a8c5a0;
 }
 
-/* added turn indicator styles now that players alternate */
 .turn-indicator {
   display: flex;
   align-items: center;
@@ -67,13 +66,19 @@ h1 span {
   background-color: #f5f0eb;
   border-radius: 50%;
   position: relative;
+  transition: background-color 0.15s ease;
 }
 
-/* coins sit inside cells as absolute fills */
+/* column hover highlight added this step */
+.cell.col-hover {
+  background-color: #e0dbd4;
+}
+
 .coin {
   position: absolute;
   inset: 0;
   border-radius: 50%;
+  transition: box-shadow 0.15s ease;
 }
 
 .coin.red {
@@ -82,4 +87,10 @@ h1 span {
 
 .coin.yellow {
   background-color: #f4e4a7;
+}
+
+/* opponent coin glow so players know they can pop it */
+.coin.opponent-hover {
+  box-shadow: 0 0 0 3px #3a3a3a44, 0 0 16px 4px #3a3a3a33;
+  cursor: crosshair;
 }
