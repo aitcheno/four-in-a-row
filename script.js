@@ -25,28 +25,23 @@ const AudioManager = (() => {
     const src = clips[name];
     if (!src) return;
 
-    // lazy load
     if (!cache[name]) {
       cache[name] = new Audio(src);
     }
 
-    // rewind, play
     const audio = cache[name];
     audio.currentTime = 0;
     audio.play().catch(() => {
-      // suppress autoplay
     });
   }
 
   return { play };
 })();
 
-// game state
 let board = [];
 let currentPlayer = 'red';
 let gameOver = false;
 
-// dom refs
 const boardEl = document.getElementById('board');
 const boardWrapper = document.querySelector('.board-wrapper');
 const turnCoinEl = document.getElementById('turn-coin');
@@ -76,14 +71,12 @@ function renderBoard() {
       cell.dataset.row = r;
       cell.dataset.col = c;
 
-      // render coin
       if (board[r][c]) {
         const coin = document.createElement('div');
         coin.classList.add('coin', board[r][c]);
         cell.appendChild(coin);
       }
 
-      // bind events
       cell.addEventListener('click', () => handleDrop(c));
       cell.addEventListener('contextmenu', (e) => {
         e.preventDefault();
@@ -100,7 +93,6 @@ function renderBoard() {
 function handleDrop(col) {
   if (gameOver) return;
 
-  // find bottom
   let targetRow = -1;
   for (let r = ROWS - 1; r >= 0; r--) {
     if (!board[r][col]) { targetRow = r; break; }
@@ -110,7 +102,6 @@ function handleDrop(col) {
   board[targetRow][col] = currentPlayer;
   const droppingPlayer = currentPlayer;
 
-  // place sound
   AudioManager.play(droppingPlayer === 'red' ? 'plop1' : 'plop2');
 
   const winningCells = checkWin(targetRow, col);
@@ -162,7 +153,6 @@ function handlePopOut(row, col) {
   const coin = targetCell.querySelector('.coin');
 
   if (coin) {
-    // shrink sound
     AudioManager.play('shrink');
 
     coin.classList.add('popping');
@@ -175,7 +165,6 @@ function handlePopOut(row, col) {
 }
 
 function applyPopOut(row, col) {
-  // shift down
   for (let r = row; r > 0; r--) {
     board[r][col] = board[r - 1][col];
   }
@@ -203,10 +192,8 @@ function handleMouseEnter(row, col) {
     const c = parseInt(cell.dataset.col);
     const r = parseInt(cell.dataset.row);
 
-    // highlight column
     if (c === col) cell.classList.add('col-hover');
 
-    // glow opponent
     if (c === col && board[r][c] === opponent) {
       const coin = cell.querySelector('.coin');
       if (coin) coin.classList.add('opponent-hover');
@@ -217,7 +204,6 @@ function handleMouseEnter(row, col) {
 }
 
 function handleMouseLeave() {
-  // clear all
   boardEl.querySelectorAll('.cell').forEach(cell => {
     cell.classList.remove('col-hover');
     const coin = cell.querySelector('.coin');
@@ -227,7 +213,6 @@ function handleMouseLeave() {
 }
 
 function updatePreviewCoin(col) {
-  // align above
   const offset = BOARD_PADDING + col * (CELL_SIZE + GAP);
   previewCoin.style.left = `${offset}px`;
   previewCoin.className = `preview-coin ${currentPlayer} visible`;
@@ -245,28 +230,24 @@ function switchPlayer() {
 function updateTurnIndicator() {
   const playerName = currentPlayer === 'red' ? 'Player 1' : 'Player 2';
   turnTextEl.textContent = `${playerName}'s turn`;
-  turnCoinEl.className = 'turn-coin';
+  turnCoinEl.className = 'turn-coin pixel-coin';
   if (currentPlayer === 'yellow') turnCoinEl.classList.add('yellow');
 }
 
-// returns winning coords or null
 function checkWin(row, col) {
   const player = board[row][col];
   if (!player) return null;
 
-  // four directions
   const directions = [[0,1],[1,0],[1,1],[1,-1]];
 
   for (const [dr, dc] of directions) {
     const cells = [[row, col]];
 
-    // positive direction
     let r = row + dr, c = col + dc;
     while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
       cells.push([r, c]); r += dr; c += dc;
     }
 
-    // negative direction
     r = row - dr; c = col - dc;
     while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
       cells.push([r, c]); r -= dr; c -= dc;
@@ -278,7 +259,6 @@ function checkWin(row, col) {
   return null;
 }
 
-// flash winning coins
 function highlightWinners(cells) {
   const allCells = boardEl.querySelectorAll('.cell');
   cells.forEach(([r, c]) => {
@@ -292,7 +272,6 @@ function showWinner() {
   gameOver = true;
   hidePreviewCoin();
 
-  // victory sound
   AudioManager.play('victory');
 
   const playerName = currentPlayer === 'red' ? 'Player 1' : 'Player 2';
@@ -302,7 +281,6 @@ function showWinner() {
 
 restartBtn.addEventListener('click', initBoard);
 
-// board exit
 boardEl.addEventListener('mouseleave', hidePreviewCoin);
 
 initBoard();

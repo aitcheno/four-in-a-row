@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -5,226 +7,249 @@
 }
 
 body {
-  background-color: #f5f0eb;
+  background-color: #dcd4c4;
+  background-image:
+    linear-gradient(#cfc6b3 2px, transparent 2px),
+    linear-gradient(90deg, #cfc6b3 2px, transparent 2px);
+  background-size: 32px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  font-family: sans-serif;
-  gap: 24px;
+  font-family: 'Press Start 2P', monospace;
+  gap: 28px;
+  image-rendering: pixelated;
 }
 
 h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #3a3a3a;
-  letter-spacing: -0.5px;
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: #2b2b2b;
+  letter-spacing: 0px;
+  text-shadow: 3px 3px 0 #b9ad95;
+  text-align: center;
+  line-height: 1.6;
 }
 
-/* accent colour */
 h1 span {
-  color: #a8c5a0;
+  color: #3f8f3a;
 }
 
 .turn-indicator {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  background: #2b2b2b;
+  padding: 10px 18px;
+  border: 3px solid #0f0f0f;
+  box-shadow: 4px 4px 0 #0f0f0f;
 }
 
-/* player dot */
+/* pixel coin shape, reused everywhere */
+.pixel-coin {
+  clip-path: polygon(
+    30% 0%, 70% 0%,
+    85% 8%, 92% 22%,
+    100% 30%, 100% 70%,
+    92% 78%, 85% 92%,
+    70% 100%, 30% 100%,
+    15% 92%, 8% 78%,
+    0% 70%, 0% 30%,
+    8% 22%, 15% 8%
+  );
+}
+
 .turn-coin {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: #f4a7a7;
-  transition: background-color 0.2s ease;
+  width: 24px;
+  height: 24px;
+  background-color: #e8453c;
+  border: 2px solid #0f0f0f;
+}
+.turn-coin.pixel-coin {
+  clip-path: polygon(
+    30% 0%, 70% 0%,
+    85% 8%, 92% 22%,
+    100% 30%, 100% 70%,
+    92% 78%, 85% 92%,
+    70% 100%, 30% 100%,
+    15% 92%, 8% 78%,
+    0% 70%, 0% 30%,
+    8% 22%, 15% 8%
+  );
+  border: none;
+  box-shadow: 0 0 0 2px #0f0f0f;
 }
 
 .turn-coin.yellow {
-  background-color: #f4e4a7;
+  background-color: #f0c93a;
 }
 
 #turn-text {
-  font-size: 1rem;
-  color: #3a3a3a;
+  font-size: 0.65rem;
+  color: #f5f0eb;
+  letter-spacing: 1px;
 }
 
-/* positions children */
 .board-wrapper {
   position: relative;
   padding-top: 96px;
 }
 
-/* hover preview */
 .preview-coin {
   position: absolute;
   width: 72px;
   height: 72px;
-  border-radius: 50%;
   top: 12px;
   left: 0;
   opacity: 0;
   pointer-events: none;
-  transition: left 0.1s ease, opacity 0.15s ease, background-color 0.2s ease;
+  transition: left 0.1s steps(6), opacity 0.1s steps(2);
   z-index: 5;
-  /* coin depth */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
+  box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.preview-coin.red { background-color: #f4a7a7; }
-.preview-coin.yellow { background-color: #f4e4a7; }
+.preview-coin.red { background-color: #e8453c; }
+.preview-coin.yellow { background-color: #f0c93a; }
 .preview-coin.visible { opacity: 1; }
 
-/* 7x6 grid */
 .board {
   display: grid;
   grid-template-columns: repeat(7, 72px);
   grid-template-rows: repeat(6, 72px);
   gap: 8px;
   padding: 16px;
-  border-radius: 16px;
   cursor: pointer;
   position: relative;
   z-index: 2;
-  /* light grey board */
-  background: #e0dbd4;
-  border: 1px solid #d0cbc4;
-  /* stronger shadow */
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.18),
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: #3a3a3a;
+  border: 4px solid #0f0f0f;
+  box-shadow: 8px 8px 0 #0f0f0f;
 }
 
-/* frosted holes */
 .cell {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
   position: relative;
   overflow: hidden;
-  transition: background-color 0.15s ease;
-  background: rgba(245, 240, 235, 0.45);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.1s steps(2);
+  background: #2b2b2b;
+  box-shadow: inset 0 0 0 3px #1a1a1a;
 }
 
-/* column highlight */
 .cell.col-hover {
-  background: rgba(220, 213, 205, 0.6);
+  background: #444035;
 }
 
 .coin {
   position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  transition: box-shadow 0.15s ease;
-  /* coin depth */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
+  inset: 4px;
+  box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.coin.red { background-color: #f4a7a7; }
-.coin.yellow { background-color: #f4e4a7; }
+.coin.red { background-color: #e8453c; }
+.coin.yellow { background-color: #f0c93a; }
 
-/* hover outlines */
 .cell.col-hover .coin.red {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5), 0 0 0 3px #e07a7a;
+  box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #ffb3ad;
 }
 
 .cell.col-hover .coin.yellow {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5), 0 0 0 3px #d4bc5a;
+  box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #fde98a;
 }
 
-/* poppable indicator */
 .coin.opponent-hover {
-  box-shadow: 0 0 0 3px #3a3a3a, 0 0 20px 8px rgba(58, 58, 58, 0.55);
+  box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #f5f0eb;
   cursor: crosshair;
-  transform: scale(1.08);
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transform: scale(1.1);
+  transition: box-shadow 0.1s steps(2), transform 0.1s steps(2);
 }
 
-/* shrink on pop */
 @keyframes pop-out {
   0%   { transform: scale(1); opacity: 1; }
-  60%  { transform: scale(1.15); opacity: 0.8; }
+  50%  { transform: scale(1.2); opacity: 1; }
+  75%  { transform: scale(0.6); opacity: 1; }
   100% { transform: scale(0); opacity: 0; }
 }
 
 .coin.popping {
-  animation: pop-out 0.25s ease-in forwards;
+  animation: pop-out 0.3s steps(4) forwards;
 }
 
-/* flying coin */
 .flying-coin {
   position: absolute;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  margin: 4px;
   pointer-events: none;
   z-index: 10;
-  animation: fly-down var(--fly-duration) cubic-bezier(0.33, 0, 0.66, 1) forwards;
-  /* coin depth */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
+  animation: fly-down var(--fly-duration) steps(10) forwards;
+  box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.flying-coin.red { background-color: #f4a7a7; }
-.flying-coin.yellow { background-color: #f4e4a7; }
+.flying-coin.red { background-color: #e8453c; }
+.flying-coin.yellow { background-color: #f0c93a; }
 
-/* drop + bounce */
 @keyframes fly-down {
   0%   { top: var(--fly-from); }
-  85%  { top: var(--fly-to); animation-timing-function: ease-out; }
+  85%  { top: var(--fly-to); animation-timing-function: steps(6); }
   92%  { top: calc(var(--fly-to) - 8px); }
   96%  { top: calc(var(--fly-to) + 4px); }
   100% { top: var(--fly-to); }
 }
 
-/* win flash */
 @keyframes win-pulse {
-  0%   { box-shadow: 0 0 0 4px #3a3a3a, 0 0 0 8px rgba(58,58,58,0); transform: scale(1); }
-  50%  { box-shadow: 0 0 0 4px #3a3a3a, 0 0 24px 12px rgba(58,58,58,0.5); transform: scale(1.12); }
-  100% { box-shadow: 0 0 0 4px #3a3a3a, 0 0 0 8px rgba(58,58,58,0); transform: scale(1); }
+  0%, 100% { box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #f5f0eb; transform: scale(1); }
+  50%      { box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #3f8f3a; transform: scale(1.12); }
 }
 
 .coin.winner {
-  animation: win-pulse 0.7s ease-in-out infinite;
-  filter: brightness(1.15) saturate(1.3);
+  animation: win-pulse 0.5s steps(2) infinite;
 }
 
-/* centred overlay */
 .winner-banner {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #3a3a3a;
+  background-color: #2b2b2b;
   color: #f5f0eb;
-  padding: 28px 44px;
-  border-radius: 16px;
+  padding: 28px 36px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   z-index: 10;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  border: 4px solid #0f0f0f;
+  box-shadow: 8px 8px 0 #0f0f0f;
 }
 
 .winner-banner.hidden { display: none; }
 
 #winner-text {
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  line-height: 1.6;
 }
 
 #restart-btn {
-  background-color: #f5f0eb;
-  color: #3a3a3a;
-  border: none;
-  padding: 10px 28px;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  font-family: 'Press Start 2P', monospace;
+  background-color: #3f8f3a;
+  color: #0f0f0f;
+  border: 3px solid #0f0f0f;
+  padding: 12px 20px;
+  font-size: 0.6rem;
   cursor: pointer;
+  box-shadow: 4px 4px 0 #0f0f0f;
 }
 
-#restart-btn:hover { background-color: #e0dbd4; }
+#restart-btn:hover {
+  background-color: #5ab552;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #0f0f0f;
+}
+
+#restart-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #0f0f0f;
+}
