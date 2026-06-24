@@ -54,16 +54,16 @@ h1 span {
 /* positions children */
 .board-wrapper {
   position: relative;
-  padding-top: 56px;
+  padding-top: 96px;
 }
 
-/* hover preview */
+/* hover preview — now matches coin size */
 .preview-coin {
   position: absolute;
-  width: 58px;
-  height: 58px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  top: 0;
+  top: 12px;
   left: 0;
   opacity: 0;
   pointer-events: none;
@@ -100,7 +100,7 @@ h1 span {
   background-color: #f5f0eb;
   border-radius: 50%;
   position: relative;
-  overflow: hidden;
+  /* removed overflow hidden — lets flying coin pass over */
   transition: background-color 0.15s ease;
 }
 
@@ -130,20 +130,29 @@ h1 span {
   cursor: crosshair;
 }
 
-/* fall animation */
-@keyframes drop {
-  from {
-    transform: translateY(var(--drop-from));
-    opacity: 0.6;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* flying coin overlay — travels full board height */
+.flying-coin {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 5;
+  animation: fly-down var(--fly-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.coin.dropping {
-  animation: drop 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+.flying-coin.red {
+  background-color: #f4a7a7;
+}
+
+.flying-coin.yellow {
+  background-color: #f4e4a7;
+}
+
+/* travels from top of board to target row */
+@keyframes fly-down {
+  from { top: var(--fly-from); }
+  to   { top: var(--fly-to); }
 }
 
 /* centred overlay */

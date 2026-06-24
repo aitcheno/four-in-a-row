@@ -3,6 +3,7 @@ const COLS = 7;
 const CELL_SIZE = 72;
 const GAP = 8;
 const BOARD_PADDING = 16;
+const PREVIEW_HEIGHT = 96;
 
 // game state
 let board = [];
@@ -11,6 +12,7 @@ let gameOver = false;
 
 // dom refs
 const boardEl = document.getElementById('board');
+const boardWrapper = document.querySelector('.board-wrapper');
 const turnCoinEl = document.getElementById('turn-coin');
 const turnTextEl = document.getElementById('turn-text');
 const winnerBanner = document.getElementById('winner-banner');
@@ -71,35 +73,55 @@ function handleDrop(col) {
   if (targetRow === -1) return;
 
   board[targetRow][col] = currentPlayer;
+  const droppingPlayer = currentPlayer;
 
   if (checkWin(targetRow, col)) {
-    renderBoard();
-    animateDrop(targetRow, col);
-    setTimeout(() => showWinner(), 380);
+    // animate then win
+    animateFly(col, targetRow, droppingPlayer, () => {
+      renderBoard();
+      showWinner();
+    });
     return;
   }
 
   switchPlayer();
-  renderBoard();
-  animateDrop(targetRow, col);
-  // refresh preview
-  updatePreviewCoin(col);
+  // animate then render
+  animateFly(col, targetRow, droppingPlayer, () => {
+    renderBoard();
+    updatePreviewCoin(col);
+  });
 }
 
-function animateDrop(row, col) {
-  const cells = boardEl.querySelectorAll('.cell');
-  const targetCell = cells[row * COLS + col];
-  const coin = targetCell.querySelector('.coin');
-  if (!coin) return;
+// flying coin travels from top of board all the way to target row
+// a temporary absolutely positioned div overlays the board during flight
+// once animation ends, callback renders the real coin into the cell
+function animateFly(col, targetRow, player, onComplete) {
+  // column left offset within wrapper
+  const colLeft = BOARD_PADDING + col * (CELL_SIZE + GAP);
 
-  // calculate distance
-  const distancePx = row * (CELL_SIZE + GAP) + BOARD_PADDING + 56;
-  coin.style.setProperty('--drop-from', `-${distancePx}px`);
-  coin.classList.add('dropping');
+  // start: just inside the top of the board area
+  const flyFrom = PREVIEW_HEIGHT + BOARD_PADDING;
 
-  // cleanup after
-  coin.addEventListener('animationend', () => {
-    coin.classList.remove('dropping');
+  // end: top of target cell within the wrapper
+  const flyTo = PREVIEW_HEIGHT + BOARD_PADDING + targetRow * (CELL_SIZE + GAP);
+
+  // duration scales with distance so faster drops feel snappier
+  const rowsToTravel = targetRow + 1;
+  const duration = 80 + rowsToTravel * 40;
+
+  const flyer = document.createElement('div');
+  flyer.classList.add('flying-coin', player);
+  flyer.style.setProperty('--fly-from', `${flyFrom}px`);
+  flyer.style.setProperty('--fly-to', `${flyTo}px`);
+  flyer.style.setProperty('--fly-duration', `${duration}ms`);
+  flyer.style.left = `${colLeft}px`;
+
+  boardWrapper.appendChild(flyer);
+
+  flyer.addEventListener('animationend', () => {
+    // remove flyer
+    flyer.remove();
+    onComplete();
   }, { once: true });
 }
 
@@ -160,7 +182,7 @@ function handleMouseLeave() {
 
 function updatePreviewCoin(col) {
   // align above column
-  const offset = BOARD_PADDING + col * (CELL_SIZE + GAP) + (CELL_SIZE - 58) / 2;
+  const offset = BOARD_PADDING + col * (CELL_SIZE + GAP);
   previewCoin.style.left = `${offset}px`;
   previewCoin.className = `preview-coin ${currentPlayer} visible`;
 }
@@ -186,12 +208,7 @@ function checkWin(row, col) {
   if (!player) return false;
 
   // four directions
-  const directions = [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, -1]
-  ];
+  const directions = [[0,1],[1,0],[1,1],[1,-1]];
 
   for (const [dr, dc] of directions) {
     let count = 1;
