@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f0eb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: sans-serif;
+  gap: 24px;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #3a3a3a;
+  letter-spacing: -0.5px;
+}
+
+h1 span {
+  color: #a8c5a0;
+}
+
+/* added turn indicator styles now that players alternate */
+.turn-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.turn-coin {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #f4a7a7;
+  transition: background-color 0.2s ease;
+}
+
+.turn-coin.yellow {
+  background-color: #f4e4a7;
+}
+
+#turn-text {
+  font-size: 1rem;
+  color: #3a3a3a;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(7, 72px);
+  grid-template-rows: repeat(6, 72px);
+  gap: 8px;
+  background-color: #b0a898;
+  padding: 16px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.cell {
+  width: 72px;
+  height: 72px;
+  background-color: #f5f0eb;
+  border-radius: 50%;
+  position: relative;
+}
+
+/* coins sit inside cells as absolute fills */
+.coin {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.coin.red {
+  background-color: #f4a7a7;
+}
+
+.coin.yellow {
+  background-color: #f4e4a7;
+}
