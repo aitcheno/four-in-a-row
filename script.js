@@ -5,6 +5,42 @@ const GAP = 8;
 const BOARD_PADDING = 16;
 const PREVIEW_HEIGHT = 96;
 
+// audio manager
+// files needed:
+//   shrink.mp3
+//   plop1.mp3
+//   plop2.mp3
+//   victory.mp3
+const AudioManager = (() => {
+  const clips = {
+    shrink:  'audio/shrink.mp3',
+    plop1:   'audio/plop1.mp3',
+    plop2:   'audio/plop2.mp3',
+    victory: 'audio/victory.mp3',
+  };
+
+  const cache = {};
+
+  function play(name) {
+    const src = clips[name];
+    if (!src) return;
+
+    // lazy load
+    if (!cache[name]) {
+      cache[name] = new Audio(src);
+    }
+
+    // rewind, play
+    const audio = cache[name];
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // suppress autoplay
+    });
+  }
+
+  return { play };
+})();
+
 // game state
 let board = [];
 let currentPlayer = 'red';
@@ -21,7 +57,6 @@ const restartBtn = document.getElementById('restart-btn');
 const previewCoin = document.getElementById('preview-coin');
 
 function initBoard() {
-  // reset state
   board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
   currentPlayer = 'red';
   gameOver = false;
@@ -41,7 +76,7 @@ function renderBoard() {
       cell.dataset.row = r;
       cell.dataset.col = c;
 
-      // existing coin
+      // render coin
       if (board[r][c]) {
         const coin = document.createElement('div');
         coin.classList.add('coin', board[r][c]);
@@ -75,39 +110,31 @@ function handleDrop(col) {
   board[targetRow][col] = currentPlayer;
   const droppingPlayer = currentPlayer;
 
-  if (checkWin(targetRow, col)) {
-    // animate then win
+  // place sound
+  AudioManager.play(droppingPlayer === 'red' ? 'plop1' : 'plop2');
+
+  const winningCells = checkWin(targetRow, col);
+  if (winningCells) {
     animateFly(col, targetRow, droppingPlayer, () => {
       renderBoard();
+      highlightWinners(winningCells);
       showWinner();
     });
     return;
   }
 
   switchPlayer();
-  // animate then render
   animateFly(col, targetRow, droppingPlayer, () => {
     renderBoard();
     updatePreviewCoin(col);
   });
 }
 
-// flying coin travels from top of board all the way to target row
-// a temporary absolutely positioned div overlays the board during flight
-// once animation ends, callback renders the real coin into the cell
 function animateFly(col, targetRow, player, onComplete) {
-  // column left offset within wrapper
   const colLeft = BOARD_PADDING + col * (CELL_SIZE + GAP);
-
-  // start: just inside the top of the board area
   const flyFrom = PREVIEW_HEIGHT + BOARD_PADDING;
-
-  // end: top of target cell within the wrapper
   const flyTo = PREVIEW_HEIGHT + BOARD_PADDING + targetRow * (CELL_SIZE + GAP);
-
-  // duration scales with distance so faster drops feel snappier
-  const rowsToTravel = targetRow + 1;
-  const duration = 80 + rowsToTravel * 40;
+  const duration = 150 + (targetRow + 1) * 80;
 
   const flyer = document.createElement('div');
   flyer.classList.add('flying-coin', player);
@@ -119,7 +146,6 @@ function animateFly(col, targetRow, player, onComplete) {
   boardWrapper.appendChild(flyer);
 
   flyer.addEventListener('animationend', () => {
-    // remove flyer
     flyer.remove();
     onComplete();
   }, { once: true });
@@ -131,14 +157,34 @@ function handlePopOut(row, col) {
   const opponent = currentPlayer === 'red' ? 'yellow' : 'red';
   if (board[row][col] !== opponent) return;
 
+  const cells = boardEl.querySelectorAll('.cell');
+  const targetCell = cells[row * COLS + col];
+  const coin = targetCell.querySelector('.coin');
+
+  if (coin) {
+    // shrink sound
+    AudioManager.play('shrink');
+
+    coin.classList.add('popping');
+    coin.addEventListener('animationend', () => {
+      applyPopOut(row, col);
+    }, { once: true });
+  } else {
+    applyPopOut(row, col);
+  }
+}
+
+function applyPopOut(row, col) {
   // shift down
   for (let r = row; r > 0; r--) {
     board[r][col] = board[r - 1][col];
   }
   board[0][col] = null;
 
-  if (checkWin(row, col)) {
+  const winningCells = checkWin(row, col);
+  if (winningCells) {
     renderBoard();
+    highlightWinners(winningCells);
     showWinner();
     return;
   }
@@ -171,7 +217,7 @@ function handleMouseEnter(row, col) {
 }
 
 function handleMouseLeave() {
-  // clear highlights
+  // clear all
   boardEl.querySelectorAll('.cell').forEach(cell => {
     cell.classList.remove('col-hover');
     const coin = cell.querySelector('.coin');
@@ -181,7 +227,7 @@ function handleMouseLeave() {
 }
 
 function updatePreviewCoin(col) {
-  // align above column
+  // align above
   const offset = BOARD_PADDING + col * (CELL_SIZE + GAP);
   previewCoin.style.left = `${offset}px`;
   previewCoin.className = `preview-coin ${currentPlayer} visible`;
@@ -203,37 +249,52 @@ function updateTurnIndicator() {
   if (currentPlayer === 'yellow') turnCoinEl.classList.add('yellow');
 }
 
+// returns winning coords or null
 function checkWin(row, col) {
   const player = board[row][col];
-  if (!player) return false;
+  if (!player) return null;
 
   // four directions
   const directions = [[0,1],[1,0],[1,1],[1,-1]];
 
   for (const [dr, dc] of directions) {
-    let count = 1;
+    const cells = [[row, col]];
 
     // positive direction
     let r = row + dr, c = col + dc;
     while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
-      count++; r += dr; c += dc;
+      cells.push([r, c]); r += dr; c += dc;
     }
 
     // negative direction
     r = row - dr; c = col - dc;
     while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
-      count++; r -= dr; c -= dc;
+      cells.push([r, c]); r -= dr; c -= dc;
     }
 
-    if (count >= 4) return true;
+    if (cells.length >= 4) return cells;
   }
 
-  return false;
+  return null;
+}
+
+// flash winning coins
+function highlightWinners(cells) {
+  const allCells = boardEl.querySelectorAll('.cell');
+  cells.forEach(([r, c]) => {
+    const cell = allCells[r * COLS + c];
+    const coin = cell && cell.querySelector('.coin');
+    if (coin) coin.classList.add('winner');
+  });
 }
 
 function showWinner() {
   gameOver = true;
   hidePreviewCoin();
+
+  // victory sound
+  AudioManager.play('victory');
+
   const playerName = currentPlayer === 'red' ? 'Player 1' : 'Player 2';
   winnerText.textContent = `${playerName} wins!`;
   winnerBanner.classList.remove('hidden');

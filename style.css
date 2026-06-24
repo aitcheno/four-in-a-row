@@ -57,7 +57,7 @@ h1 span {
   padding-top: 96px;
 }
 
-/* hover preview — now matches coin size */
+/* hover preview */
 .preview-coin {
   position: absolute;
   width: 72px;
@@ -68,19 +68,14 @@ h1 span {
   opacity: 0;
   pointer-events: none;
   transition: left 0.1s ease, opacity 0.15s ease, background-color 0.2s ease;
+  z-index: 5;
+  /* coin depth */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
 }
 
-.preview-coin.red {
-  background-color: #f4a7a7;
-}
-
-.preview-coin.yellow {
-  background-color: #f4e4a7;
-}
-
-.preview-coin.visible {
-  opacity: 1;
-}
+.preview-coin.red { background-color: #f4a7a7; }
+.preview-coin.yellow { background-color: #f4e4a7; }
+.preview-coin.visible { opacity: 1; }
 
 /* 7x6 grid */
 .board {
@@ -88,25 +83,36 @@ h1 span {
   grid-template-columns: repeat(7, 72px);
   grid-template-rows: repeat(6, 72px);
   gap: 8px;
-  background-color: #b0a898;
   padding: 16px;
   border-radius: 16px;
   cursor: pointer;
+  position: relative;
+  z-index: 2;
+  /* light grey board */
+  background: #e0dbd4;
+  border: 1px solid #d0cbc4;
+  /* stronger shadow */
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
+/* frosted holes */
 .cell {
   width: 72px;
   height: 72px;
-  background-color: #f5f0eb;
   border-radius: 50%;
   position: relative;
-  /* removed overflow hidden — lets flying coin pass over */
+  overflow: hidden;
   transition: background-color 0.15s ease;
+  background: rgba(245, 240, 235, 0.45);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* column highlight */
 .cell.col-hover {
-  background-color: #e0dbd4;
+  background: rgba(220, 213, 205, 0.6);
 }
 
 .coin {
@@ -114,45 +120,76 @@ h1 span {
   inset: 0;
   border-radius: 50%;
   transition: box-shadow 0.15s ease;
+  /* coin depth */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
 }
 
-.coin.red {
-  background-color: #f4a7a7;
+.coin.red { background-color: #f4a7a7; }
+.coin.yellow { background-color: #f4e4a7; }
+
+/* hover outlines */
+.cell.col-hover .coin.red {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5), 0 0 0 3px #e07a7a;
 }
 
-.coin.yellow {
-  background-color: #f4e4a7;
+.cell.col-hover .coin.yellow {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5), 0 0 0 3px #d4bc5a;
 }
 
 /* poppable indicator */
 .coin.opponent-hover {
-  box-shadow: 0 0 0 3px #3a3a3a44, 0 0 16px 4px #3a3a3a33;
+  box-shadow: 0 0 0 3px #3a3a3a, 0 0 20px 8px rgba(58, 58, 58, 0.55);
   cursor: crosshair;
+  transform: scale(1.08);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-/* flying coin overlay — travels full board height */
+/* shrink on pop */
+@keyframes pop-out {
+  0%   { transform: scale(1); opacity: 1; }
+  60%  { transform: scale(1.15); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.coin.popping {
+  animation: pop-out 0.25s ease-in forwards;
+}
+
+/* flying coin */
 .flying-coin {
   position: absolute;
   width: 72px;
   height: 72px;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 5;
-  animation: fly-down var(--fly-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  z-index: 10;
+  animation: fly-down var(--fly-duration) cubic-bezier(0.33, 0, 0.66, 1) forwards;
+  /* coin depth */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5);
 }
 
-.flying-coin.red {
-  background-color: #f4a7a7;
-}
+.flying-coin.red { background-color: #f4a7a7; }
+.flying-coin.yellow { background-color: #f4e4a7; }
 
-.flying-coin.yellow {
-  background-color: #f4e4a7;
-}
-
-/* travels from top of board to target row */
+/* drop + bounce */
 @keyframes fly-down {
-  from { top: var(--fly-from); }
-  to   { top: var(--fly-to); }
+  0%   { top: var(--fly-from); }
+  85%  { top: var(--fly-to); animation-timing-function: ease-out; }
+  92%  { top: calc(var(--fly-to) - 8px); }
+  96%  { top: calc(var(--fly-to) + 4px); }
+  100% { top: var(--fly-to); }
+}
+
+/* win flash */
+@keyframes win-pulse {
+  0%   { box-shadow: 0 0 0 4px #3a3a3a, 0 0 0 8px rgba(58,58,58,0); transform: scale(1); }
+  50%  { box-shadow: 0 0 0 4px #3a3a3a, 0 0 24px 12px rgba(58,58,58,0.5); transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 4px #3a3a3a, 0 0 0 8px rgba(58,58,58,0); transform: scale(1); }
+}
+
+.coin.winner {
+  animation: win-pulse 0.7s ease-in-out infinite;
+  filter: brightness(1.15) saturate(1.3);
 }
 
 /* centred overlay */
@@ -173,9 +210,7 @@ h1 span {
   box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 
-.winner-banner.hidden {
-  display: none;
-}
+.winner-banner.hidden { display: none; }
 
 #winner-text {
   font-size: 1.4rem;
@@ -192,6 +227,4 @@ h1 span {
   cursor: pointer;
 }
 
-#restart-btn:hover {
-  background-color: #e0dbd4;
-}
+#restart-btn:hover { background-color: #e0dbd4; }
