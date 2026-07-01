@@ -1,4 +1,31 @@
+/* DESIGN CONTEXT:
+   When programming the game, I hadn't a specific artstyle in mind.
+   I was just playing with colours and a very minimalistic look with round
+   tokens. The retro pixel art style was shaped by the simple wave synth
+   I used which was a REAPER stock plugin on my laptop. When implementing 
+   the sounds, they did not fit with the aesthetic so I changed the style 
+   to that of NES or SEGA Master System pixel art (The background was inspired
+   by the background of the Master System cartridge box art).
+
+   For this styling, I used CSS steps timing to mimic sprite based
+   movement from 80s video games.
+   Sounds are very short and of simple waveforms (square, triangle etc).
+   Square shapes were used throughout to give a sense of pixelised sprites
+   without having to design them thoroughly. The bright colours, and smooth
+   look, give a modern but retro-inspired look that I was going for.
+   
+   I made the board the equivalent size of the real Connect Four
+
+   Font:
+   The font was chosen due to its similarity to arcade game pixelised
+   font           https://fonts.google.com/specimen/Press+Start+2P*/
+
+
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* RESET
+   Just zeroes default browser padding to make my element widths predictable */
+
 
 * {
   margin: 0;
@@ -6,6 +33,9 @@
   box-sizing: border-box;
 }
 
+/* BACKGROUND
+   The cross-hatched SEGA inspired background is made with two layered CSS.
+   linear-gradients grid going horizontal and vertical. */
 body {
   background-color: #dcd4c4;
   background-image:
@@ -19,22 +49,60 @@ body {
   min-height: 100vh;
   font-family: 'Press Start 2P', monospace;
   gap: 28px;
-  image-rendering: pixelated;
+  image-rendering: pixelated; /* Learned this from 
+  https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/image-rendering
+  Makes any images more pixelated rather than smooth */
 }
+
+/* TITLE h1
+   I made the text shadow have no blur in order to have it be a hard pixel
+   shadow. 
+   I added animation that slowly glows just for variety and it was inspired
+   by arcade titles which slowly flashed.
+   Margin at the top pushes the title down from the top of the screen
+   because I thought it looked more polished */
 
 h1 {
   font-size: 1.4rem;
   font-weight: normal;
-  color: #2b2b2b;
   letter-spacing: 0px;
-  text-shadow: 3px 3px 0 #b9ad95;
+  text-shadow: 3px 3px 0 #b9ad95;  
   text-align: center;
   line-height: 1.6;
+  margin-top: 48px;
+  animation: title-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes title-glow {
+  0%, 100% { color: #2b2b2b; }
+  50% { color: #6b6a64; }
 }
 
 h1 span {
-  color: #3f8f3a;
+  animation: title-glow-accent 3.2s ease-in-out infinite;
 }
+
+@keyframes title-glow-accent {
+  0%, 100% { color: #3f8f3a; }
+  50% { color: #8fd687; }
+}
+
+/* SUBTITLE
+   Smaller than the title, and has a muted colour to make the title pop.
+   IUsed a dark colour as it explains the rules and should be readable. */
+
+.subtitle {
+  font-size: 0.6rem;
+  color: #5a5648;
+  text-align: center;
+  line-height: 1.8;
+  max-width: 480px;
+  margin-top: -8px;
+}
+
+/* TURN INDICATOR
+   Dark panel with border and the same hard shadow to match the board and title.
+   Contains a coloured square to show whose turn it is. */
 
 .turn-indicator {
   display: flex;
@@ -44,74 +112,76 @@ h1 span {
   padding: 10px 18px;
   border: 3px solid #0f0f0f;
   box-shadow: 4px 4px 0 #0f0f0f;
+
+  /* Hover effect just to add more interaction */
+  transition: transform 0.15s steps(3);
 }
 
-/* pixel coin shape, reused everywhere */
-.pixel-coin {
-  clip-path: polygon(
-    30% 0%, 70% 0%,
-    85% 8%, 92% 22%,
-    100% 30%, 100% 70%,
-    92% 78%, 85% 92%,
-    70% 100%, 30% 100%,
-    15% 92%, 8% 78%,
-    0% 70%, 0% 30%,
-    8% 22%, 15% 8%
-  );
+.turn-indicator:hover {
+  transform: scale(1.04);
+}
+
+.turn-indicator:hover #turn-text {
+  color: #ffffff;
+  text-shadow: 1px 1px 0 #3f8f3a;
 }
 
 .turn-coin {
   width: 24px;
   height: 24px;
-  background-color: #e8453c;
-  border: 2px solid #0f0f0f;
-}
-.turn-coin.pixel-coin {
-  clip-path: polygon(
-    30% 0%, 70% 0%,
-    85% 8%, 92% 22%,
-    100% 30%, 100% 70%,
-    92% 78%, 85% 92%,
-    70% 100%, 30% 100%,
-    15% 92%, 8% 78%,
-    0% 70%, 0% 30%,
-    8% 22%, 15% 8%
-  );
-  border: none;
+  background-color: #e8453c;  /* Player 1 red */
   box-shadow: 0 0 0 2px #0f0f0f;
 }
 
 .turn-coin.yellow {
-  background-color: #f0c93a;
+  background-color: #f0c93a;  /* Player 2 yellow */
 }
 
 #turn-text {
   font-size: 0.65rem;
   color: #f5f0eb;
   letter-spacing: 1px;
+  transition: color 0.1s steps(2), text-shadow 0.1s steps(2);
 }
 
+/* BOARD WRAPPER
+   The position: relative is very important because it is the containing block
+   for the preview coin and winner banner. 
+   padding-top is the space where the preview coins go. This padding makes sure 
+   they don't appear on top of any other element. */
 .board-wrapper {
   position: relative;
-  padding-top: 96px;
+  padding-top: 96px;  /* Matches the PREVIEW_HEIGHT in js */
 }
+
+/* PREVIEW COIN
+   Coin which appears whichever column is being hovered over.
+   Opacity transitions in steps to mimic old arcade style games
+   with very low frame rates */
 
 .preview-coin {
   position: absolute;
-  width: 72px;
-  height: 72px;
-  top: 12px;
-  left: 0;
+  width: 64px;
+  height: 64px;
+  top: 16px;
+  left: 4px;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none; 
   transition: left 0.1s steps(6), opacity 0.1s steps(2);
   z-index: 5;
   box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.preview-coin.red { background-color: #e8453c; }
+.preview-coin.red    { background-color: #e8453c; }
 .preview-coin.yellow { background-color: #f0c93a; }
 .preview-coin.visible { opacity: 1; }
+
+/* BOARD GRID
+   A 7*6 CSS grid. All coin sizes and gap values match the CELL_SIZE and GAP in js.
+   IF CHANGING ONE I HAVE TO CHANGE THE OTHER. 
+   Dark grey background which with each cell over the top represents the plastic
+   dividers in the real game. The dividers make the game more visually digestable 
+   and easier to comprehend than if there weren't dividers. */
 
 .board {
   display: grid;
@@ -124,8 +194,15 @@ h1 span {
   z-index: 2;
   background: #3a3a3a;
   border: 4px solid #0f0f0f;
-  box-shadow: 8px 8px 0 #0f0f0f;
+  box-shadow: 8px 8px 0 #0f0f0f;  /* Consistent shadow to the other elements */
 }
+
+/* CELLS
+   Each cell is a darker grey and the combination with the bg looks sleak.
+   The darkness also creates the illusion of depth, and that there is a hole
+   in the board
+   overflow: hidden which clips the flying coin animation at the cell edge as
+   explained in the JS */
 
 .cell {
   width: 72px;
@@ -134,12 +211,19 @@ h1 span {
   overflow: hidden;
   transition: background-color 0.1s steps(2);
   background: #2b2b2b;
-  box-shadow: inset 0 0 0 3px #1a1a1a;
+  box-shadow: inset 0 0 0 3px #1a1a1a;  /* Darker border give even more depth */
 }
 
+/* Entire column gets a tint while hovering to help players track where their cursor is pointing */
 .cell.col-hover {
   background: #444035;
 }
+
+/* COINS
+   inset: 4px gives the perfect gap between the coin and the cell border
+   so it feels like they are sitting inside the slot 
+    Otherwise they are simply red or yellow squares. Colours were chosen based on 
+    the real game */
 
 .coin {
   position: absolute;
@@ -147,9 +231,11 @@ h1 span {
   box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.coin.red { background-color: #e8453c; }
+.coin.red    { background-color: #e8453c; }
 .coin.yellow { background-color: #f0c93a; }
 
+/* Adds a highlighted ring around the coins which matches and adds emphasis to the already highlighted columns
+(Used for the same reason)*/
 .cell.col-hover .coin.red {
   box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #ffb3ad;
 }
@@ -158,46 +244,72 @@ h1 span {
   box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #fde98a;
 }
 
+/* OPPONENT HOVER
+   This is the hover animation which is applied only to the opponents coin
+   you have your cursor over. 
+   I added a crosshair (learned from https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/cursor)
+   when hovering and the glow to make it intuitive, if a user hasn't read the rules
+   that an interaction with that coin is possible.
+   A cursor is understood as targeting and perhaps a destructive action, so 
+   this choice was inspired by that */
 .coin.opponent-hover {
   box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #f5f0eb;
-  cursor: crosshair;
-  transform: scale(1.1);
+  cursor: crosshair;      
+  transform: scale(1.1);   /* enlargement makes it feel interactable */
   transition: box-shadow 0.1s steps(2), transform 0.1s steps(2);
 }
 
+/* POP-OUT ANIMATION
+   Plays when opponents coin is right clicked. 
+   The coin scales up quickly, then shrinks until it disappears. 
+   Using the steps again, it makes it look like a sprite animation
+   rather than a smooth one which fits the aesthetic.*/
+
 @keyframes pop-out {
-  0%   { transform: scale(1); opacity: 1; }
-  50%  { transform: scale(1.2); opacity: 1; }
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(1.2); opacity: 1; } /* Slight increase*/
   75%  { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(0);   opacity: 0; } /* Shrinks to nothing*/
 }
 
 .coin.popping {
   animation: pop-out 0.3s steps(4) forwards;
 }
 
+/* FLYING COIN
+   Positioningexplained in the JS
+   This animation is for the dropping coin from the preview coin to
+   the lowest row available.
+   I used custom properties which the JS sets the values based on what
+   is available on the board. This makes each fall seem consistent, 
+   and not cutting short or long based on it's distance, original and final
+   positions.*/
+
 .flying-coin {
   position: absolute;
   width: 64px;
   height: 64px;
-  margin: 4px;
   pointer-events: none;
   z-index: 10;
   animation: fly-down var(--fly-duration) steps(10) forwards;
   box-shadow: 0 0 0 3px #0f0f0f;
 }
 
-.flying-coin.red { background-color: #e8453c; }
+.flying-coin.red    { background-color: #e8453c; }
 .flying-coin.yellow { background-color: #f0c93a; }
 
 @keyframes fly-down {
   0%   { top: var(--fly-from); }
   85%  { top: var(--fly-to); animation-timing-function: steps(6); }
-  92%  { top: calc(var(--fly-to) - 8px); }
-  96%  { top: calc(var(--fly-to) + 4px); }
-  100% { top: var(--fly-to); }
+  92%  { top: calc(var(--fly-to) - 8px); }    /* more pixels than needed*/
+  96%  { top: calc(var(--fly-to) + 4px); }    /* goes back*/
+  100% { top: var(--fly-to); }                 /* where it actually lands
+  This is just to add a bit of a bouncing animation but it's 
+  not too pronounced or distracting*/
 }
 
+/* WIN PULSE
+   Winning coins pulse with black and green rings to show which coins were aligned to win */
 @keyframes win-pulse {
   0%, 100% { box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #f5f0eb; transform: scale(1); }
   50%      { box-shadow: 0 0 0 3px #0f0f0f, 0 0 0 6px #3f8f3a; transform: scale(1.12); }
@@ -207,6 +319,10 @@ h1 span {
   animation: win-pulse 0.5s steps(2) infinite;
 }
 
+/* WINNER BANNER
+   Perfectly centred over the board using transform: translate
+   Similar panel to the player turn indicator, with same shadow so it coheres
+   with the rest of the UI */
 .winner-banner {
   position: absolute;
   top: 50%;
@@ -232,6 +348,10 @@ h1 span {
   line-height: 1.6;
 }
 
+/* RESTART BUTTON
+   Restart button has a hover animation which simulates the pressing of a button
+   as I made the the shadow stay stationary with the button moving inwards.
+   This was to give the look of an actual arcade or retro computer button */
 #restart-btn {
   font-family: 'Press Start 2P', monospace;
   background-color: #3f8f3a;
@@ -241,6 +361,7 @@ h1 span {
   font-size: 0.6rem;
   cursor: pointer;
   box-shadow: 4px 4px 0 #0f0f0f;
+  transition: transform 0.05s steps(2), box-shadow 0.05s steps(2), background-color 0.05s steps(2);
 }
 
 #restart-btn:hover {
@@ -252,4 +373,11 @@ h1 span {
 #restart-btn:active {
   transform: translate(4px, 4px);
   box-shadow: 0 0 0 #0f0f0f;
+}
+
+/* PAGE FOOTER
+   Just a simple footer to give the board space and not be tied to the bottom of the page */
+.page-footer-space {
+  height: 48px;  
+  width: 100%;
 }

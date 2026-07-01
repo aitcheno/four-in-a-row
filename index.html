@@ -1,3 +1,9 @@
+<!-- I feel the HTML is pretty self explanatory as the website structure itself is simple
+ and I heavily rely on the JS. Not much is to be said except for the design structure/hierarchy. The title
+ appears at the top because it is most important for the user to read. The subtitle underneath as it is secondmost
+ important to read. 
+ The board fills most of the screen as this is where all the interactivity happens and is the key focus of the page-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,20 +16,28 @@
 
   <h1>Four In A Row: <span>Pop Out</span></h1>
 
+  <p class="subtitle">Aim for four in a row! Right click to delete your opponent's piece as a turn &gt;:)</p>
+
   <div class="turn-indicator">
-    <div class="turn-coin pixel-coin" id="turn-coin"></div>
+    <div class="turn-coin" id="turn-coin"></div>
     <p id="turn-text">Player 1's turn</p>
   </div>
 
   <div class="board-wrapper">
+
     <div class="preview-coin" id="preview-coin"></div>
+
+    <!-- This is the 7*6 grid. Cells are injected by renderBoard() in the JS -->
     <div class="board" id="board"></div>
 
+    <
     <div id="winner-banner" class="winner-banner hidden">
       <p id="winner-text"></p>
       <button id="restart-btn">Play Again</button>
     </div>
   </div>
+
+  <div class="page-footer-space"></div>
 
   <script src="script.js"></script>
 </body>
